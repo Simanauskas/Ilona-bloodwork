@@ -1,16 +1,16 @@
 import { useState } from "react";
 
 // ── Patient & Meta ────────────────────────────────────────────────────────────
-const PATIENT = { name: "Ilona Radavičiūtė", dob: "1992-05-02", age: 33 };
-const LAST_UPDATED = "2026-05-31";
+const PATIENT = { name: "Ilona Radavičiūtė", dob: "1992-05-02", age: 34 };
+const LAST_UPDATED = "2026-07-31";
 
 // ── Conditions (from clinical notes) ─────────────────────────────────────────
 const CONDITIONS = [
   { code: "E28.2", label: "PCOS", detail: "Polycystic ovary syndrome — confirmed on ultrasound" },
   { code: "E22.1", label: "Hyperprolactinaemia", detail: "Elevated prolactin ×3 over years; pituitary MRI normal (2022, 2025)" },
-  { code: "E28.1", label: "Androgen Excess", detail: "Testosterone 2.67 nmol/L (Sep 2023, ref <2.6)" },
+  { code: "E28.1", label: "Androgen Excess", detail: "Historic: testosterone 2.67 nmol/L (Sep 2023). Normalised by Jul 2026 — T 1.05, SHBG 54.1, free androgen index 1.9" },
   { code: "E04.2", label: "Multinodular Goitre", detail: "Non-toxic; monitored by endocrinologist, function normal" },
-  { code: "E09.9", label: "Impaired Glucose Tolerance", detail: "GTT Oct 2024: fasting 5.35 mmol/L; on Metformin 850 mg ×2/day from May 2025" },
+  { code: "E09.9", label: "Impaired Glucose Tolerance", detail: "GTT Oct 2024: fasting 5.35 mmol/L; on Metformin 850 mg ×2/day from May 2025. Jul 2026: HbA1c 5.34%, fasting glucose 4.59 — well controlled" },
   { code: "E61.1", label: "Iron Deficiency", detail: "Recurrent low ferritin; heavy menstruation (N92.0)" },
 ];
 
@@ -88,6 +88,44 @@ const LAB_DATA = {
   "2026-05-25": { WBC:5.44, RBC:4.12, HGB:126, HCT:37.7, MCV:91.4, MCH:30.5, MCHC:334, RDW:12.9, PLT:298, MPV:9.9,
     NEUT:2.99, NEUT_pct:54.9, LYMPH:1.63, LYMPH_pct:30.0, MONO_pct:6.8, EOS_pct:7.9, BASO_pct:0.4,
     K:3.9, Ca:2.23, ALP:55.2, TSH:1.787 },
+
+  "2026-07-31": { WBC:4.22, RBC:4.14, HGB:127, HCT:37.8, MCV:91.2, MCH:30.7, MCHC:336, RDW:12.5, PLT:293, MPV:9.7,
+    NEUT:2.12, NEUT_pct:50.4, LYMPH:1.42, LYMPH_pct:33.8, MONO_pct:8.2, EOS_pct:7.0, BASO_pct:0.6,
+    TP:69.44, ALB:45.9, HBA1C:5.34, GLU:4.59,
+    CREA:67.3, UREA:3.23, GFR:105,
+    TBIL:8.38, DBIL:3.20, AST:18.3, ALT:19.4, ALP:60.8, GGT:9.91,
+    CHOL:4.14, HDL:1.16, LDL:2.70, TRIG:0.62, NONHDL:2.98,
+    PROL:1273.19, TESTO:1.05, SHBG:54.12, DHEAS:9.206, FAI:1.94,
+    VITD:112.21, FERR:45.74 },
+};
+
+// ── Key findings from the most recent draw ────────────────────────────────────
+const FINDINGS = {
+  date: "2026-07-31",
+  lab: "Rezus.lt Vilnius · order 3790323345",
+  headline: "Metabolic and androgen picture markedly improved; prolactin remains the one clear outlier.",
+  items: [
+    { tone: "bad",  icon: "🔺", title: "Prolactin still markedly elevated",
+      detail: "1273 mIU/L vs ref 109–557 (2.3× upper limit). Down from the July 2025 peak (1418 → 1342) but persistently high. Pituitary MRI was normal in 2022 and 2025. Lab report explicitly recommends repeating the test and adding a macroprolactin assay to rule out macroprolactinaemia." },
+    { tone: "good", icon: "✅", title: "Androgen excess has normalised",
+      detail: "Testosterone 1.05 nmol/L (was 2.67 in Sep 2023, above range). SHBG 54.1 and DHEA-S 9.21 both mid-range. Free androgen index 1.9 — well within normal (<5). The E28.1 androgen-excess picture is no longer biochemically active." },
+    { tone: "good", icon: "✅", title: "Glucose control excellent on Metformin",
+      detail: "HbA1c 5.34% (34.9 mmol/mol) and fasting glucose 4.59 mmol/L — both comfortably normal, and the best readings on record. Compare fasting 5.35 at the Oct 2024 GTT that prompted treatment." },
+    { tone: "warn", icon: "⚠️", title: "Iron stores drifting down again",
+      detail: "Ferritin 45.7 µg/L — in range, but down sharply from 159 in July 2025. Haemoglobin 127 g/L and all red-cell indices are normal, so no anaemia yet. Given the recurrent-deficiency history (E61.1 with heavy menstruation), worth rechecking in ~3 months." },
+    { tone: "warn", icon: "⚠️", title: "Lipids: low HDL, mildly high LDL",
+      detail: "HDL 1.16 mmol/L (lab target >1.55) is the weakest lipid value; LDL 2.70 sits just over the <2.6 goal, though improved from 3.23 in Apr 2025. Total cholesterol 4.14, triglycerides 0.62 and non-HDL 2.98 are all fine. Pattern is typical of PCOS/insulin resistance and responds best to aerobic exercise." },
+    { tone: "warn", icon: "⚠️", title: "Persistent mild eosinophilia",
+      detail: "Eosinophils 7.0% (ref <5.5%) — the fifth consecutive elevated reading (7.9% May 2026, 8.2% Dec 2024). Absolute count 0.30 ×10⁹/L is still normal, so this is a mild, chronic pattern most consistent with atopy/allergy rather than anything acute." },
+    { tone: "good", icon: "✅", title: "Liver, kidney and protein status all normal",
+      detail: "AST 18.3, ALT 19.4, ALP 60.8, GGT 9.91, bilirubin 8.38 — all comfortably in range. Creatinine 67.3 with eGFR 105 mL/min, urea 3.23. Total protein 69.4 and albumin 45.9 normal. Vitamin D 112 nmol/L is sufficient, though down from 154 in Apr 2025." },
+  ],
+  nextSteps: [
+    "Repeat prolactin + add macroprolactin assay (per lab recommendation)",
+    "Recheck ferritin in ~3 months to confirm the downward trend has stopped",
+    "Continue Metformin — glycaemic markers are the best they have ever been",
+    "Aerobic exercise to lift HDL; vitamin D dose may need a modest bump",
+  ],
 };
 
 // ── Marker definitions ────────────────────────────────────────────────────────
@@ -107,6 +145,8 @@ const MARKERS = {
   PROL:     ["Prolactin",      "mIU/L",    102,   496,   "Pituitary hormone; elevated → hyperprolactinaemia"],
   TESTO:    ["Testosterone",   "nmol/L",   0.1,   2.6,  "Female reference; elevated in PCOS"],
   DHEAS:    ["DHEA-S",         "µmol/L",   1.8,  12.2,  "Adrenal androgen"],
+  SHBG:     ["SHBG",           "nmol/L",  19.8, 155.2,  "Sex hormone binding globulin; low SHBG raises free androgens"],
+  FAI:      ["Free Androgen Idx","",         0,     5,  "100 × testosterone ÷ SHBG; >5 suggests androgen excess"],
   LH:       ["LH",             "IU/L",    null,  null,   "Luteinising hormone (cycle-dependent)"],
   FSH:      ["FSH",            "IU/L",    null,  null,   "Follicle-stimulating hormone (cycle-dependent)"],
   GLU:      ["Glucose",        "mmol/L",   4.1,   5.9,  "Fasting blood glucose"],
@@ -116,15 +156,29 @@ const MARKERS = {
   LDL:      ["LDL",            "mmol/L",     0,   2.6,  "Low-density lipoprotein"],
   HDL:      ["HDL",            "mmol/L",   1.2,   9.9,  "High-density lipoprotein; higher is better"],
   TRIG:     ["Triglycerides",  "mmol/L",     0,   1.7,  "Blood fats; linked to metabolic health"],
+  NONHDL:   ["Non-HDL Chol.",  "mmol/L",     0,   3.4,  "Total minus HDL; all atherogenic particles"],
   WBC:      ["Leukocytes",     "10⁹/L",    4.0,   9.8,  "White blood cell count"],
   PLT:      ["Platelets",      "10⁹/L",    140,   450,  "Clotting cells"],
+  HCT:      ["Haematocrit",    "%",       35.5,  45.5,  "% of blood volume made up of red cells"],
+  MCV:      ["MCV",            "fL",        80,    99,  "Mean red cell volume"],
+  MCH:      ["MCH",            "pg",        27,  33.5,  "Mean haemoglobin per red cell"],
+  MCHC:     ["MCHC",           "g/L",      315,   360,  "Haemoglobin concentration per red cell"],
+  RDW:      ["RDW-CV",         "%",       11.5,    15,  "Variation in red cell size"],
+  MPV:      ["MPV",            "fL",         7,  11.5,  "Mean platelet volume"],
   NEUT_pct: ["Neutrophils %",  "%",         40,    65,   "% of WBC; first responders to infection"],
   LYMPH_pct:["Lymphocytes %",  "%",         25,    37,   "% of WBC; adaptive immunity"],
+  MONO_pct: ["Monocytes %",    "%",          2,   9.5,  "% of WBC; tissue clean-up & chronic inflammation"],
+  BASO_pct: ["Basophils %",    "%",          0,   1.8,  "% of WBC; allergic response"],
   NEUT:     ["Neutrophils",    "10⁹/L",    1.5,   6.0,  "Absolute neutrophil count"],
   LYMPH:    ["Lymphocytes",    "10⁹/L",    1.0,   4.0,  "Absolute lymphocyte count"],
   EOS_pct:  ["Eosinophils %",  "%",          0,     5,  "Allergy / parasite marker"],
   CREA:     ["Creatinine",     "µmol/L",    45,    84,   "Kidney filtration marker"],
+  UREA:     ["Urea",           "mmol/L",   2.5,   6.7,  "Protein breakdown product cleared by kidneys"],
   GFR:      ["eGFR",           "mL/min",    90,  999,   "Estimated glomerular filtration rate"],
+  TP:       ["Total Protein",  "g/L",       64,    83,  "Albumin + globulins"],
+  ALB:      ["Albumin",        "g/L",       35,    52,  "Main blood protein; nutrition & liver marker"],
+  TBIL:     ["Total Bilirubin","µmol/L",   5.1,  20.5,  "Haem breakdown product"],
+  DBIL:     ["Direct Bilirubin","µmol/L",    0,   8.6,  "Conjugated bilirubin"],
   ALT:      ["ALT",            "U/L",        0,    35,   "Liver enzyme; elevated → liver stress"],
   AST:      ["AST",            "U/L",        0,    35,   "Liver/muscle enzyme"],
   GGT:      ["GGT",            "U/L",        0,    38,   "Liver enzyme"],
@@ -338,6 +392,63 @@ function TimelineChart({ mkeys }) {
   );
 }
 
+// ── Findings Card (latest draw) ───────────────────────────────────────────────
+function FindingsCard() {
+  const [open, setOpen] = useState({});
+  const toneStyles = {
+    good: { border: "border-green-500/30",  bg: "bg-green-500/5",  text: "text-green-300" },
+    warn: { border: "border-orange-500/30", bg: "bg-orange-500/5", text: "text-orange-300" },
+    bad:  { border: "border-red-500/40",    bg: "bg-red-500/5",    text: "text-red-300" },
+  };
+  const fmtDate = (d) => { const [y,m,day] = d.split("-"); return `${day}/${m}/${y}`; };
+
+  return (
+    <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-4 mb-5">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="text-lg">📋</span>
+        <span className="text-sm font-semibold text-slate-200 uppercase tracking-wider">Latest Results — Conclusions</span>
+      </div>
+      <div className="text-xs text-slate-500 mb-3">{fmtDate(FINDINGS.date)} · {FINDINGS.lab}</div>
+      <p className="text-sm text-slate-300 mb-4 leading-relaxed">{FINDINGS.headline}</p>
+
+      <div className="space-y-2">
+        {FINDINGS.items.map((it, i) => {
+          const t = toneStyles[it.tone];
+          const isOpen = !!open[i];
+          return (
+            <div
+              key={i}
+              className={`rounded-lg border ${t.border} ${t.bg} p-2.5 cursor-pointer transition-all hover:brightness-125`}
+              onClick={() => setOpen(o => ({ ...o, [i]: !o[i] }))}
+            >
+              <div className="flex items-start gap-2">
+                <span className="text-sm shrink-0">{it.icon}</span>
+                <span className={`text-sm font-medium ${t.text} flex-1`}>{it.title}</span>
+                <span className="text-slate-600 text-xs shrink-0">{isOpen ? "▲" : "▼"}</span>
+              </div>
+              {isOpen && (
+                <p className="text-xs text-slate-400 mt-2 leading-relaxed pl-6">{it.detail}</p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-slate-700/50">
+        <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Suggested Next Steps</div>
+        <ul className="space-y-1">
+          {FINDINGS.nextSteps.map((s, i) => (
+            <li key={i} className="text-xs text-slate-400 flex gap-2">
+              <span className="text-blue-400 shrink-0">→</span>
+              <span>{s}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 // ── Conditions Card ───────────────────────────────────────────────────────────
 function ConditionsCard() {
   return (
@@ -483,6 +594,7 @@ export default function App() {
         {tab === "overview" && (
           <>
             <SummaryBar />
+            <FindingsCard />
             <ConditionsCard />
             <MedsCard />
             {/* Key watch markers */}
@@ -511,12 +623,12 @@ export default function App() {
             <div className="text-xs text-slate-400 bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 mb-4">
               🔬 Diagnosed PCOS (E28.2), elevated prolactin (E22.1) & androgen excess (E28.1). Pituitary MRI normal 2022 &amp; 2025.
             </div>
-            <TimelineChart mkeys={["PROL","TESTO","TSH","ATPO"]} />
+            <TimelineChart mkeys={["PROL","TESTO","SHBG","TSH","ATPO"]} />
             <Panel title="Thyroid" emoji="🦋" defaultOpen>
               {["TSH","FT4","FT3","ATPO"].map(k => <MarkerCard key={k} mkey={k} />)}
             </Panel>
             <Panel title="Reproductive Hormones" emoji="⚡" defaultOpen>
-              {["PROL","TESTO","DHEAS","LH","FSH"].map(k => <MarkerCard key={k} mkey={k} />)}
+              {["PROL","TESTO","SHBG","FAI","DHEAS","LH","FSH"].map(k => <MarkerCard key={k} mkey={k} />)}
             </Panel>
           </>
         )}
@@ -544,9 +656,9 @@ export default function App() {
 
         {tab === "lipids" && (
           <>
-            <TimelineChart mkeys={["LDL","HDL","CHOL","TRIG"]} />
+            <TimelineChart mkeys={["LDL","HDL","CHOL","TRIG","NONHDL"]} />
             <Panel title="Lipid Panel" emoji="🫀" defaultOpen>
-              {["CHOL","LDL","HDL","TRIG"].map(k => <MarkerCard key={k} mkey={k} />)}
+              {["CHOL","LDL","HDL","TRIG","NONHDL"].map(k => <MarkerCard key={k} mkey={k} />)}
             </Panel>
           </>
         )}
@@ -555,7 +667,7 @@ export default function App() {
           <>
             <TimelineChart mkeys={["WBC","PLT","NEUT_pct","LYMPH_pct","EOS_pct"]} />
             <Panel title="Full Blood Count" emoji="🔬" defaultOpen>
-              {["WBC","RBC","HGB","HCT","PLT","MPV","NEUT_pct","LYMPH_pct","MONO_pct","EOS_pct","NEUT","LYMPH"].map(k => <MarkerCard key={k} mkey={k} />)}
+              {["WBC","RBC","HGB","HCT","MCV","MCH","MCHC","RDW","PLT","MPV","NEUT_pct","LYMPH_pct","MONO_pct","EOS_pct","BASO_pct","NEUT","LYMPH"].map(k => <MarkerCard key={k} mkey={k} />)}
             </Panel>
           </>
         )}
@@ -564,10 +676,13 @@ export default function App() {
           <>
             <TimelineChart mkeys={["ALT","AST","GGT","ALP","CREA","GFR"]} />
             <Panel title="Liver" emoji="🫁" defaultOpen>
-              {["ALT","AST","GGT","ALP"].map(k => <MarkerCard key={k} mkey={k} />)}
+              {["ALT","AST","GGT","ALP","TBIL","DBIL"].map(k => <MarkerCard key={k} mkey={k} />)}
             </Panel>
             <Panel title="Kidney" emoji="🫘" defaultOpen>
               {["CREA","GFR","UREA"].map(k => <MarkerCard key={k} mkey={k} />)}
+            </Panel>
+            <Panel title="Protein Status" emoji="🧬" defaultOpen>
+              {["TP","ALB"].map(k => <MarkerCard key={k} mkey={k} />)}
             </Panel>
           </>
         )}
