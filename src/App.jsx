@@ -2,7 +2,7 @@ import { useState } from "react";
 
 // ── Patient & Meta ────────────────────────────────────────────────────────────
 const PATIENT = { name: "Ilona Radavičiūtė", dob: "1992-05-02", age: 34 };
-const LAST_UPDATED = "2026-07-31";
+const LAST_UPDATED = "2026-10-05";
 
 // ── Conditions (from clinical notes) ─────────────────────────────────────────
 const CONDITIONS = [
@@ -11,7 +11,7 @@ const CONDITIONS = [
   { code: "E28.1", label: "Androgen Excess", detail: "Historic: testosterone 2.67 nmol/L (Sep 2023). Normalised by Jul 2026 — T 1.05, SHBG 54.1, free androgen index 1.9" },
   { code: "E04.2", label: "Multinodular Goitre", detail: "Non-toxic; monitored by endocrinologist, function normal" },
   { code: "E09.9", label: "Impaired Glucose Tolerance", detail: "GTT Oct 2024: fasting 5.35 mmol/L; on Metformin 850 mg ×2/day from May 2025. Jul 2026: HbA1c 5.34%, fasting glucose 4.59 — well controlled" },
-  { code: "E61.1", label: "Iron Deficiency", detail: "Recurrent low ferritin; heavy menstruation (N92.0)" },
+  { code: "E61.1", label: "Iron Deficiency", detail: "Recurrent low ferritin; heavy menstruation (N92.0). IV iron 500 mg on 10 Aug 2026 → ferritin 45.7 → 275.8 µg/L (Oct 2026)" },
 ];
 
 // ── Medications & Supplements ─────────────────────────────────────────────────
@@ -21,6 +21,12 @@ const MEDICATIONS = [
 const SUPPLEMENTS = [
   "Vitamin D", "Vitamin B", "Vitamin C", "Omega-3", "Magnesium bisglycinate + malate",
   "Pre/probiotics",
+];
+
+// ── Treatments & procedures ───────────────────────────────────────────────────
+const TREATMENTS = [
+  { date: "2026-08-10", name: "IV iron infusion (500 mg)", where: "Rezus.lt Ozas, Vilnius · order 3790324629",
+    note: "Given after ferritin fell to 45.7 µg/L (31 Jul). Follow-up 5 Oct: ferritin 275.8 µg/L" },
 ];
 
 // ── Lab Data ──────────────────────────────────────────────────────────────────
@@ -97,34 +103,35 @@ const LAB_DATA = {
     CHOL:4.14, HDL:1.16, LDL:2.70, TRIG:0.62, NONHDL:2.98,
     PROL:1273.19, TESTO:1.05, SHBG:54.12, DHEAS:9.206, FAI:1.94,
     VITD:112.21, FERR:45.74 },
+
+  "2026-10-05": { WBC:4.90, RBC:4.14, HGB:127, HCT:37.0, MCV:89.4, MCH:30.7, MCHC:343, RDW:12.8, PLT:319, MPV:10.3,
+    NEUT:2.54, NEUT_pct:51.8, LYMPH:1.68, LYMPH_pct:34.3, MONO_pct:6.2, EOS_pct:7.3, BASO_pct:0.4,
+    CHOL:3.59, HDL:1.27, LDL:2.10, TRIG:0.49, NONHDL:2.32,
+    FERR:275.78 },
 };
 
 // ── Key findings from the most recent draw ────────────────────────────────────
 const FINDINGS = {
-  date: "2026-07-31",
-  lab: "Rezus.lt Vilnius · order 3790323345",
-  headline: "Metabolic and androgen picture markedly improved; prolactin remains the one clear outlier.",
+  date: "2026-10-05",
+  lab: "Rezus.lt Vilnius (Santaros) · order 2673025420",
+  headline: "The August iron infusion worked: ferritin is now well above target. Blood count is stable and lipids are the best on record apart from HDL.",
   items: [
-    { tone: "bad",  icon: "🔺", title: "Prolactin still markedly elevated",
-      detail: "1273 mIU/L vs ref 109–557 (2.3× upper limit). Down from the July 2025 peak (1418 → 1342) but persistently high. Pituitary MRI was normal in 2022 and 2025. Lab report explicitly recommends repeating the test and adding a macroprolactin assay to rule out macroprolactinaemia." },
-    { tone: "good", icon: "✅", title: "Androgen excess has normalised",
-      detail: "Testosterone 1.05 nmol/L (was 2.67 in Sep 2023, above range). SHBG 54.1 and DHEA-S 9.21 both mid-range. Free androgen index 1.9 — well within normal (<5). The E28.1 androgen-excess picture is no longer biochemically active." },
-    { tone: "good", icon: "✅", title: "Glucose control excellent on Metformin",
-      detail: "HbA1c 5.34% (34.9 mmol/mol) and fasting glucose 4.59 mmol/L — both comfortably normal, and the best readings on record. Compare fasting 5.35 at the Oct 2024 GTT that prompted treatment." },
-    { tone: "warn", icon: "⚠️", title: "Iron stores drifting down again",
-      detail: "Ferritin 45.7 µg/L — in range, but down sharply from 159 in July 2025. Haemoglobin 127 g/L and all red-cell indices are normal, so no anaemia yet. Given the recurrent-deficiency history (E61.1 with heavy menstruation), worth rechecking in ~3 months." },
-    { tone: "warn", icon: "⚠️", title: "Lipids: low HDL, mildly high LDL",
-      detail: "HDL 1.16 mmol/L (lab target >1.55) is the weakest lipid value; LDL 2.70 sits just over the <2.6 goal, though improved from 3.23 in Apr 2025. Total cholesterol 4.14, triglycerides 0.62 and non-HDL 2.98 are all fine. Pattern is typical of PCOS/insulin resistance and responds best to aerobic exercise." },
-    { tone: "warn", icon: "⚠️", title: "Persistent mild eosinophilia",
-      detail: "Eosinophils 7.0% (ref <5.5%) — the fifth consecutive elevated reading (7.9% May 2026, 8.2% Dec 2024). Absolute count 0.30 ×10⁹/L is still normal, so this is a mild, chronic pattern most consistent with atopy/allergy rather than anything acute." },
-    { tone: "good", icon: "✅", title: "Liver, kidney and protein status all normal",
-      detail: "AST 18.3, ALT 19.4, ALP 60.8, GGT 9.91, bilirubin 8.38 — all comfortably in range. Creatinine 67.3 with eGFR 105 mL/min, urea 3.23. Total protein 69.4 and albumin 45.9 normal. Vitamin D 112 nmol/L is sufficient, though down from 154 in Apr 2025." },
+    { tone: "good", icon: "✅", title: "Iron stores fully replenished after IV infusion",
+      detail: "Ferritin 275.8 µg/L, up from 45.7 on 31 Jul, about 8 weeks after the 500 mg IV iron infusion on 10 Aug. The lab flags it as above its 4.63–204 range. A high ferritin this soon after an infusion is expected and usually drifts down over the following months. Ferritin also rises with inflammation, but the white cell count (4.90) and neutrophils are normal, so there is no sign of that here." },
+    { tone: "good", icon: "✅", title: "Haemoglobin and red-cell indices stable and normal",
+      detail: "Haemoglobin 127 g/L (unchanged), RBC 4.14, HCT 37.0%, MCV 89.4, MCH 30.7, RDW 12.8. Haemoglobin was never low, so the infusion refilled iron stores rather than correcting anaemia." },
+    { tone: "good", icon: "✅", title: "Lipids improved: LDL back under goal",
+      detail: "LDL 2.10 mmol/L (was 2.70 in Jul, now under the <2.6 goal). Total cholesterol 3.59, non-HDL 2.32 and triglycerides 0.49 are all comfortably low. HDL rose from 1.16 to 1.27 but is still below the lab's >1.55 target. It remains the one lipid value worth working on, and aerobic exercise helps most." },
+    { tone: "warn", icon: "⚠️", title: "Eosinophils mildly high again",
+      detail: "Eosinophils 7.3% (ref 0.5–5.5%), the sixth consecutive elevated reading. The absolute count of 0.36 ×10⁹/L is within range (0.02–0.50), so this is the same mild, chronic pattern seen before, most consistent with atopy or allergy." },
+    { tone: "good", icon: "✅", title: "Rest of the blood count normal",
+      detail: "WBC 4.90, platelets 319, neutrophils 2.54 (51.8%), lymphocytes 1.68 (34.3%), monocytes 6.2%, basophils 0.4%. Plateletcrit 0.33% is a hair above its 0.30 limit, which is not meaningful with a normal platelet count and MPV (10.3)." },
   ],
   nextSteps: [
-    "Repeat prolactin + add macroprolactin assay (per lab recommendation)",
-    "Recheck ferritin in ~3 months to confirm the downward trend has stopped",
-    "Continue Metformin — glycaemic markers are the best they have ever been",
-    "Aerobic exercise to lift HDL; vitamin D dose may need a modest bump",
+    "Recheck ferritin, ideally with CRP, in ~3 months to see the post-infusion level settle",
+    "Ask the doctor whether oral iron should be paused while ferritin is this high",
+    "Prolactin repeat + macroprolactin (recommended after the July draw) was not in this panel and is still outstanding",
+    "Aerobic exercise to keep lifting HDL; continue Metformin",
   ],
 };
 
@@ -610,6 +617,17 @@ export default function App() {
           <>
             <div className="text-xs text-slate-400 bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 mb-4">
               ⚠️ Recurrent iron deficiency (E61.1) driven by heavy menstruation (N92.0). Monitor ferritin &gt;40 ng/mL target.
+            </div>
+            <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-3 mb-4">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">💉 Iron Treatments</div>
+              {TREATMENTS.map(t => (
+                <div key={t.date + t.name} className="mb-1">
+                  <span className="text-sm font-medium text-slate-200">{t.name}</span>
+                  <span className="text-xs text-slate-400 ml-2">{t.date}</span>
+                  <p className="text-xs text-slate-500">{t.where}</p>
+                  <p className="text-xs text-slate-400">{t.note}</p>
+                </div>
+              ))}
             </div>
             <TimelineChart mkeys={["FERR","HGB","FE","RBC"]} />
             <Panel title="Iron & Blood" emoji="🩸" defaultOpen>
