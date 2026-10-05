@@ -10,13 +10,22 @@ const CONDITIONS = [
   { code: "E22.1", label: "Hyperprolactinaemia", detail: "Elevated prolactin ×3 over years; pituitary MRI normal (2022, 2025)" },
   { code: "E28.1", label: "Androgen Excess", detail: "Historic: testosterone 2.67 nmol/L (Sep 2023). Normalised by Jul 2026 — T 1.05, SHBG 54.1, free androgen index 1.9" },
   { code: "E04.2", label: "Multinodular Goitre", detail: "Non-toxic; monitored by endocrinologist, function normal" },
-  { code: "E09.9", label: "Impaired Glucose Tolerance", detail: "GTT Oct 2024: fasting 5.35 mmol/L; on Metformin 850 mg ×2/day from May 2025. Jul 2026: HbA1c 5.34%, fasting glucose 4.59 — well controlled" },
+  { code: "E09.9", label: "Impaired Glucose Tolerance", detail: "GTT Oct 2024: fasting 5.35 mmol/L; Metformin 850 mg ×2/day May 2025 → phased out by Oct 2026. Jul 2026: HbA1c 5.34%, fasting glucose 4.59 — well controlled. Wegovy (semaglutide) since 9 Aug 2026" },
   { code: "E61.1", label: "Iron Deficiency", detail: "Recurrent low ferritin; heavy menstruation (N92.0). IV iron 500 mg on 10 Aug 2026 → ferritin 45.7 → 275.8 µg/L (Oct 2026)" },
 ];
 
 // ── Medications & Supplements ─────────────────────────────────────────────────
 const MEDICATIONS = [
-  { name: "Metformin 850 mg", freq: "2× daily", since: "May 2025", note: "For PCOS / impaired glucose tolerance" },
+  { name: "Wegovy (semaglutide) 0.25 mg", freq: "weekly injection", since: "9 Aug 2026",
+    note: "0.125 mg for the first 4 weeks, 0.25 mg since early Sep. Endocrinologist review 6 Oct 2026 to assess progress and set the next dose" },
+  { name: "Metformin 850 mg", freq: "2× daily", since: "May 2025", stopped: "Oct 2026",
+    note: "For PCOS / impaired glucose tolerance — gradually phased out after starting Wegovy" },
+];
+
+// ── Body weight ───────────────────────────────────────────────────────────────
+const WEIGHT = [
+  { date: "2026-08-09", kg: 68.0, note: "Wegovy start" },
+  { date: "2026-10-05", kg: 64.5, note: "On 0.25 mg" },
 ];
 const SUPPLEMENTS = [
   "Vitamin D", "Vitamin B", "Vitamin C", "Omega-3", "Magnesium bisglycinate + malate",
@@ -131,7 +140,8 @@ const FINDINGS = {
     "Recheck ferritin, ideally with CRP, in ~3 months to see the post-infusion level settle",
     "Ask the doctor whether oral iron should be paused while ferritin is this high",
     "Prolactin repeat + macroprolactin (recommended after the July draw) was not in this panel and is still outstanding",
-    "Aerobic exercise to keep lifting HDL; continue Metformin",
+    "Endocrinologist review 6 Oct: assess Wegovy progress (−3.5 kg so far) and decide the next dose",
+    "Aerobic exercise to keep lifting HDL",
   ],
 };
 
@@ -489,11 +499,13 @@ function MedsCard() {
       </div>
       <div className="mb-3">
         {MEDICATIONS.map(m => (
-          <div key={m.name} className="flex items-start gap-2 mb-1">
-            <span className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded px-1.5 py-0.5 shrink-0">Rx</span>
+          <div key={m.name} className={`flex items-start gap-2 mb-1 ${m.stopped ? "opacity-60" : ""}`}>
+            <span className={`text-xs rounded px-1.5 py-0.5 shrink-0 border ${m.stopped
+              ? "bg-slate-700/50 text-slate-400 border-slate-600/40"
+              : "bg-blue-500/20 text-blue-300 border-blue-500/30"}`}>{m.stopped ? "Stopped" : "Rx"}</span>
             <div>
-              <span className="text-sm font-medium text-slate-200">{m.name}</span>
-              <span className="text-xs text-slate-400 ml-2">{m.freq} · since {m.since}</span>
+              <span className={`text-sm font-medium text-slate-200 ${m.stopped ? "line-through" : ""}`}>{m.name}</span>
+              <span className="text-xs text-slate-400 ml-2">{m.freq} · {m.since}{m.stopped ? ` → ${m.stopped}` : " → now"}</span>
               <p className="text-xs text-slate-500">{m.note}</p>
             </div>
           </div>
@@ -502,6 +514,39 @@ function MedsCard() {
       <div className="flex flex-wrap gap-1.5">
         {SUPPLEMENTS.map(s => (
           <span key={s} className="text-xs bg-slate-700/50 text-slate-400 border border-slate-600/40 rounded-full px-2 py-0.5">{s}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Weight Card ───────────────────────────────────────────────────────────────
+function WeightCard() {
+  const first = WEIGHT[0], last = WEIGHT[WEIGHT.length - 1];
+  const delta = last.kg - first.kg;
+  const fmtDate = (d) => { const [y,m,day] = d.split("-"); return `${day}/${m}/${y}`; };
+  return (
+    <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-4 mb-5">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-lg">⚖️</span>
+        <span className="text-sm font-semibold text-slate-200 uppercase tracking-wider">Body Weight</span>
+      </div>
+      <div className="flex items-baseline gap-2 mb-1">
+        <span className="text-2xl font-bold text-slate-100 tabular-nums">{last.kg.toFixed(1)}</span>
+        <span className="text-xs text-slate-400">kg</span>
+        <span className={`text-sm font-medium ml-2 ${delta < 0 ? "text-green-400" : "text-orange-400"}`}>
+          {delta > 0 ? "+" : ""}{delta.toFixed(1)} kg
+        </span>
+        <span className="text-xs text-slate-500">since {fmtDate(first.date)}</span>
+      </div>
+      <Sparkline data={WEIGHT.map(w => ({ date: w.date, value: w.kg }))} color="#60a5fa" height={36} />
+      <div className="mt-2 space-y-0.5">
+        {WEIGHT.map(w => (
+          <div key={w.date} className="flex justify-between text-xs">
+            <span className="text-slate-400">{fmtDate(w.date)}</span>
+            <span className="text-slate-500">{w.note}</span>
+            <span className="font-mono text-slate-300">{w.kg.toFixed(1)} kg</span>
+          </div>
         ))}
       </div>
     </div>
@@ -604,6 +649,7 @@ export default function App() {
             <FindingsCard />
             <ConditionsCard />
             <MedsCard />
+            <WeightCard />
             {/* Key watch markers */}
             <div className="mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Key Watch Markers</div>
             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -654,7 +700,7 @@ export default function App() {
         {tab === "metabolic" && (
           <>
             <div className="text-xs text-slate-400 bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 mb-4">
-              ⚠️ Impaired glucose tolerance (E09.9). GTT Oct 2024: fasting 5.35 mmol/L. HOMA-IR 1.6. On Metformin from May 2025.
+              ⚠️ Impaired glucose tolerance (E09.9). GTT Oct 2024: fasting 5.35 mmol/L. HOMA-IR 1.6. Metformin May 2025 → phased out Oct 2026; Wegovy (semaglutide) since Aug 2026.
             </div>
             <TimelineChart mkeys={["GLU","INS","HBA1C","HOMO"]} />
             <Panel title="Glucose & Insulin" emoji="🍬" defaultOpen>
